@@ -17,7 +17,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
   useEffect(() => {
     async function getDrink() {
-      const { data } = await supabase.from('energy_drinks').select('*').eq('id', id).single();
+      const { data } = await supabase.from('v_energy_drinks_dashboard').select('*').eq('id', id).single();
       if (data) setDrink(data);
       if (typeof window !== 'undefined' && localStorage.getItem(`voted_${id}`)) setVoted(true);
     }
