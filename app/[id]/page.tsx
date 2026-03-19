@@ -10,7 +10,6 @@ const supabase = createClient(URL, KEY);
 
 export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const router = useRouter();
   const [drink, setDrink] = useState<any>(null);
   const [fullImage, setFullImage] = useState<string | null>(null);
 
@@ -22,35 +21,32 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (id) getDrink();
   }, [id]);
 
-  if (!drink) return <div className="min-h-screen bg-black flex items-center justify-center font-black text-yellow-400 uppercase tracking-tighter italic text-2xl">Wczytywanie protokołu...</div>;
+  if (!drink) return <div className="min-h-screen bg-black flex items-center justify-center font-black text-yellow-400 uppercase italic text-2xl">Wczytywanie...</div>;
 
   const folderName = drink.name.toLowerCase().trim().replace(/\s+/g, '_');
   const coverUrl = `${URL}/storage/v1/object/public/energy-drinkss/${folderName}/cover.JPG`;
   const ingredientsImgUrl = `${URL}/storage/v1/object/public/energy-drinkss/${folderName}/ingredients.JPG`;
 
   return (
-    <main className="min-h-screen bg-[#050505] text-zinc-300 font-sans uppercase p-4 md:p-8 text-left">
+    <main className="min-h-screen bg-[#050505] text-zinc-300 font-sans uppercase p-4 md:p-8">
       
-      {/* Modal dla zdjęć */}
       {fullImage && (
         <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 cursor-pointer" onClick={() => setFullImage(null)}>
-          <img src={fullImage} className="max-w-full max-h-full rounded-xl border border-zinc-800 shadow-2xl" alt="Widok detali" />
+          <img src={fullImage} className="max-w-full max-h-full rounded-xl border border-zinc-800" alt="Powiększenie" />
         </div>
       )}
 
       <div className="max-w-6xl mx-auto">
-        {/* NAGŁÓWEK */}
-        <header className="flex justify-between items-center mb-12 border-b border-zinc-800 pb-6">
-          <Link href="/" className="hover:opacity-80 transition-all active:scale-95">
-            <h1 className="text-3xl md:text-4xl font-black text-yellow-400 italic tracking-tighter">⚡ ENERGETYKI.PL</h1>
+        <header className="flex justify-between items-center mb-12 border-b border-zinc-800 pb-6 text-left">
+          <Link href="/" className="hover:opacity-80 transition-all">
+            <h1 className="text-3xl md:text-4xl font-black text-yellow-400 italic tracking-tighter text-left">⚡ ENERGETYKI.PL</h1>
           </Link>
-          <Link href="/" className="text-[10px] font-black text-zinc-500 hover:text-yellow-400 tracking-widest border border-zinc-800 px-6 py-2 rounded-full transition-all">
-            POWRÓT DO BAZY
+          <Link href="/" className="text-[10px] font-black text-zinc-500 hover:text-yellow-400 tracking-widest border border-zinc-800 px-6 py-2 rounded-full transition-all text-left">
+            POWRÓT
           </Link>
         </header>
         
-        <div className="grid md:grid-cols-2 gap-8 md:gap-16 mb-16 items-start">
-          {/* FOTO PUSZKI */}
+        <div className="grid md:grid-cols-2 gap-8 md:gap-16 mb-16 items-start text-left">
           <div 
             className="rounded-[40px] overflow-hidden border-2 border-zinc-800 bg-zinc-900 shadow-2xl aspect-square cursor-zoom-in group"
             onClick={() => setFullImage(coverUrl)}
@@ -63,64 +59,43 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             />
           </div>
           
-          <div className="flex flex-col h-full justify-center">
-            <p className="text-yellow-400 font-black italic tracking-[0.4em] text-xs mb-3">{drink.brand}</p>
-            <h1 className="text-5xl md:text-7xl font-black text-white italic tracking-tighter leading-[0.9] mb-10">
+          <div className="flex flex-col h-full justify-center text-left">
+            <p className="text-yellow-400 font-black italic tracking-[0.4em] text-xs mb-3 text-left">{drink.brand}</p>
+            <h1 className="text-5xl md:text-7xl font-black text-white italic tracking-tighter leading-[0.9] mb-10 text-left">
               {drink.name}
             </h1>
             
-            {/* GŁÓWNE PARAMETRY */}
-            <div className="grid grid-cols-2 gap-4 mb-10">
+            <div className="grid grid-cols-2 gap-4 mb-10 text-left">
               <div className="bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800">
-                <p className="text-[10px] text-zinc-500 font-black mb-1 tracking-widest">CENA</p>
-                <p className="text-3xl font-black text-green-400 italic">{drink.avg_price?.toFixed(2)} PLN</p>
+                <p className="text-[10px] text-zinc-500 font-black mb-1 tracking-widest text-left text-left">ENERGIA / 100ML</p>
+                <p className="text-3xl font-black text-white italic text-left">{drink.kcal || "—"} KCAL</p>
               </div>
               <div className="bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800">
-                <p className="text-[10px] text-zinc-500 font-black mb-1 tracking-widest">KOFEINA / 100ML</p>
-                <p className="text-3xl font-black text-white italic">{drink.caffeine_mg_100ml} MG</p>
+                <p className="text-[10px] text-zinc-500 font-black mb-1 tracking-widest text-left">CUKIER / 100ML</p>
+                <p className="text-3xl font-black text-white italic text-left">{drink.sugar || "0"} G</p>
               </div>
             </div>
 
-            {/* TABELA WARTOŚCI ODŻYWCZYCH */}
-            <div className="bg-zinc-900/30 p-8 rounded-[32px] border border-zinc-800 mb-8">
-              <h3 className="text-yellow-400 font-black mb-4 tracking-tighter italic text-sm">WARTOŚĆ W 100ML</h3>
-              <div className="space-y-3 font-mono text-[11px]">
-                <div className="flex justify-between border-b border-zinc-800/50 pb-1">
-                  <span className="text-zinc-500 text-left">ENERGIA</span>
-                  <span className="text-white font-bold">{drink.kcal || "—"} KCAL</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-800/50 pb-1">
-                  <span className="text-zinc-500 text-left">CUKRY</span>
-                  <span className="text-white font-bold">{drink.sugar || "0"} G</span>
-                </div>
-                <div className="flex justify-between border-b border-zinc-800/50 pb-1">
-                  <span className="text-zinc-500 text-left">SÓL</span>
-                  <span className="text-white font-bold">{drink.salt || "0"} G</span>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-l-4 border-yellow-400 pl-8">
-              <p className="text-lg text-zinc-400 italic lowercase first-letter:uppercase leading-relaxed">
-                {drink.description || "Baza danych w trakcie aktualizacji opisu."}
+            <div className="border-l-4 border-yellow-400 pl-8 text-left">
+              <p className="text-lg text-zinc-400 italic lowercase first-letter:uppercase leading-relaxed text-left">
+                {drink.description || "Opis produktu w przygotowaniu."}
               </p>
             </div>
           </div>
         </div>
 
-        {/* SKŁAD SUROWCOWY */}
-        <div className="grid md:grid-cols-3 gap-8 border-t border-zinc-900 pt-16 mb-20">
-          <div className="md:col-span-2">
-            <h2 className="text-2xl font-black text-white italic mb-6 tracking-tighter">PEŁNY SKŁAD SUROWCOWY</h2>
+        <div className="grid md:grid-cols-3 gap-8 border-t border-zinc-900 pt-16 mb-20 text-left">
+          <div className="md:col-span-2 text-left text-left">
+            <h2 className="text-2xl font-black text-white italic mb-6 tracking-tighter text-left">SKŁAD</h2>
             <div className="bg-zinc-900/20 p-8 rounded-3xl border border-zinc-800">
-              <p className="text-sm text-zinc-400 leading-relaxed lowercase first-letter:uppercase italic">
-                {drink.ingredients || "Skład zostanie uzupełniony wkrótce."}
+              <p className="text-sm text-zinc-400 leading-relaxed lowercase italic text-left">
+                {drink.ingredients || "Brak danych o składnikach."}
               </p>
             </div>
           </div>
 
-          <div>
-            <h2 className="text-2xl font-black text-white italic mb-6 tracking-tighter">ETYKIETA</h2>
+          <div className="text-left">
+            <h2 className="text-2xl font-black text-white italic mb-6 tracking-tighter text-left">ETYKIETA</h2>
             <div 
               className="rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 cursor-zoom-in hover:border-yellow-400 transition-all shadow-xl aspect-[3/4]"
               onClick={() => setFullImage(ingredientsImgUrl)}
@@ -128,7 +103,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <img 
                 src={ingredientsImgUrl} 
                 className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" 
-                alt="Etykieta"
+                alt="Skład"
                 onError={(e: any) => { if (!e.target.src.includes('.jpg')) e.target.src = ingredientsImgUrl.replace('.JPG', '.jpg'); }} 
               />
             </div>
