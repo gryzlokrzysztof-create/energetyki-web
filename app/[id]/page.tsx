@@ -1,115 +1,136 @@
 "use client";
-import { useEffect, useState, use } from 'react';
+import { useEffect, useState } from 'react';
 import { createClient } from '@supabase/supabase-js';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 const URL = 'https://bhpxwadyvudhfqnkklir.supabase.co';
-const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJocHh3YWR5dnVkaGZxbmtrbGlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3OTc0MTQsImV4cCI6MjA4NzM3MzQxNH0.0XT10Md4LodUak5FreZKyy4W8CXQFyZPAewVgUF6EZg'; 
+const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJocHh3YWR5dnVkaGZxbmtrbGlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3OTc0MTQsImV4cCI6MjA4NzM3MzQxNH0.0XT10Md4LodUak5FreZKyy4W8CXQFyZPAewVgUF6EZg';
 const supabase = createClient(URL, KEY);
 
-export default function ProductPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = use(params);
-  const router = useRouter();
-  const [drink, setDrink] = useState<any>(null);
-  const [fullImage, setFullImage] = useState<string | null>(null);
+type SortConfig = {
+  key: string;
+  direction: 'asc' | 'desc';
+};
+
+export default function Home() {
+  const [drinks, setDrinks] = useState<any[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'ratio', direction: 'desc' });
 
   useEffect(() => {
-    async function getDrink() {
-      const { data } = await supabase.from('energy_drinks').select('*').eq('id', id).single();
-      if (data) setDrink(data);
+    async function getData() {
+      try {
+        setLoading(true);
+        const { data } = await supabase.from('energy_drinks').select('*');
+        if (data) setDrinks(data);
+      } finally {
+        setLoading(false);
+      }
     }
-    if (id) getDrink();
-  }, [id]);
+    getData();
+  }, []);
 
-  if (!drink) return <div className="min-h-screen bg-black flex items-center justify-center font-black text-yellow-400 uppercase tracking-tighter italic">Ładowanie danych...</div>;
+  const requestSort = (key: string) => {
+    let direction: 'asc' | 'desc' = 'asc';
+    if (sortConfig.key === key && sortConfig.direction === 'asc') {
+      direction = 'desc';
+    }
+    setSortConfig({ key, direction });
+  };
 
-  const folderName = drink.name.toLowerCase().trim().replace(/\s+/g, '_');
-  const coverUrl = `${URL}/storage/v1/object/public/energy-drinkss/${folderName}/cover.JPG`;
-  const ingredientsUrl = `${URL}/storage/v1/object/public/energy-drinkss/${folderName}/ingredients.JPG`;
+  const processedDrinks = drinks
+    .filter(d => d.name?.toLowerCase().includes(searchTerm.toLowerCase()))
+    .sort((a, b) => {
+      let aValue: any;
+      let bValue: any;
+
+      if (sortConfig.key === 'ratio') {
+        aValue = (a.caffeine_mg_100ml * (a.volume / 100)) / a.avg_price;
+        bValue = (b.caffeine_mg_100ml * (b.volume / 100)) / b.avg_price;
+      } else {
+        aValue = a[sortConfig.key];
+        bValue = b[sortConfig.key];
+      }
+
+      if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+  const getSortIcon = (key: string) => {
+    if (sortConfig.key !== key) return " ↕";
+    return sortConfig.direction === 'asc' ? " ▲" : " ▼";
+  };
+
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center font-black text-yellow-400 uppercase italic">Aktualizacja danych...</div>;
 
   return (
-    <main className="min-h-screen bg-[#050505] text-zinc-300 font-sans uppercase p-4 md:p-8 text-left">
-      
-      {/* Podgląd pełnego zdjęcia */}
-      {fullImage && (
-        <div className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4 cursor-pointer" onClick={() => setFullImage(null)}>
-          <img src={fullImage} className="max-w-full max-h-full rounded-xl border border-zinc-800" alt="Widok" />
-        </div>
-      )}
-
+    <main className="min-h-screen bg-[#050505] text-zinc-400 p-8 font-sans uppercase">
       <div className="max-w-6xl mx-auto">
-        {/* NAGŁÓWEK - Wraca do strony głównej */}
-        <header className="flex justify-between items-center mb-12 border-b border-zinc-800 pb-6">
-          <Link href="/" className="hover:opacity-80 transition-all active:scale-95">
-            <h1 className="text-3xl md:text-4xl font-black text-yellow-400 italic tracking-tighter">⚡ ENERGETYKI.PL</h1>
-          </Link>
-          <Link href="/" className="text-[10px] font-black text-zinc-500 hover:text-yellow-400 tracking-widest border border-zinc-800 px-6 py-2 rounded-full transition-all">
-            POWRÓT
-          </Link>
+        <header className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6 border-b border-zinc-800 pb-6">
+          <div className="text-left">
+            <h1 className="text-4xl font-black text-yellow-400 italic tracking-tighter">⚡ ENERGETYKI.PL</h1>
+            <p className="text-zinc-500 text-[10px] font-black tracking-widest mt-1">SYSTEM ANALIZY OPŁACALNOŚCI</p>
+          </div>
+          <input 
+            type="text" 
+            placeholder="SZUKAJ PRODUKTU..." 
+            className="bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-xs font-bold text-white outline-none focus:border-yellow-400 w-64"
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </header>
-        
-        <div className="grid md:grid-cols-2 gap-8 md:gap-16 mb-16 items-start">
-          {/* FOTO PUSZKI */}
-          <div 
-            className="rounded-[40px] overflow-hidden border-2 border-zinc-800 bg-zinc-900 shadow-2xl aspect-square cursor-zoom-in group"
-            onClick={() => setFullImage(coverUrl)}
-          >
-            <img 
-              src={coverUrl} 
-              className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" 
-              alt={drink.name}
-              onError={(e: any) => { 
-                if (!e.target.src.includes('.jpg')) {
-                    e.target.src = coverUrl.replace('.JPG', '.jpg');
-                }
-              }} 
-            />
-          </div>
-          
-          <div className="flex flex-col h-full justify-center">
-            <p className="text-yellow-400 font-black italic tracking-[0.4em] text-xs mb-3">{drink.brand}</p>
-            <h1 className="text-5xl md:text-7xl font-black text-white italic tracking-tighter leading-[0.9] mb-12">
-              {drink.name}
-            </h1>
-            
-            <div className="grid grid-cols-2 gap-4 mb-12">
-              <div className="bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800">
-                <p className="text-[10px] text-zinc-500 font-black mb-2 tracking-widest text-left">CENA ŚREDNIA</p>
-                <p className="text-3xl font-black text-green-400 italic">{drink.avg_price} PLN</p>
-              </div>
-              <div className="bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800">
-                <p className="text-[10px] text-zinc-500 font-black mb-2 tracking-widest text-left">KOFEINA / 100ML</p>
-                <p className="text-3xl font-black text-white italic">{drink.caffeine_mg_100ml} MG</p>
-              </div>
-            </div>
 
-            <div className="border-l-4 border-yellow-400 pl-8">
-              <p className="text-lg text-zinc-400 italic lowercase first-letter:uppercase leading-relaxed">
-                {drink.description || "Brak dodatkowych informacji w bazie danych."}
-              </p>
-            </div>
-          </div>
-        </div>
+        <div className="border border-zinc-800 rounded-2xl overflow-hidden bg-zinc-900/20 shadow-2xl">
+          <table className="w-full text-left text-[11px] md:text-xs border-collapse">
+            <thead>
+              <tr className="bg-zinc-800/50 text-zinc-400 font-black cursor-pointer select-none">
+                <th className="p-4 hover:text-white" onClick={() => requestSort('name')}>
+                  PRODUKT {getSortIcon('name')}
+                </th>
+                <th className="p-4 text-right hover:text-white" onClick={() => requestSort('volume')}>
+                  OBJĘTOŚĆ {getSortIcon('volume')}
+                </th>
+                <th className="p-4 text-right hover:text-white" onClick={() => requestSort('avg_price')}>
+                  CENA {getSortIcon('avg_price')}
+                </th>
+                <th className="p-4 text-right text-yellow-500 hover:text-white font-black" onClick={() => requestSort('ratio')}>
+                  MOC / 1 ZŁ {getSortIcon('ratio')}
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-zinc-900">
+              {processedDrinks.map((drink) => {
+                const folder = drink.name.toLowerCase().trim().replace(/\s+/g, '_');
+                const imgUrl = `${URL}/storage/v1/object/public/energy-drinkss/${folder}/cover.JPG`;
+                
+                // Nowa kalkulacja uwzględniająca pojemność: (Kofeina na 100ml * ilość setek ml) / cena
+                const ratio = ((drink.caffeine_mg_100ml * (drink.volume / 100)) / drink.avg_price).toFixed(2);
 
-        {/* SKŁAD */}
-        <div className="border-t border-zinc-900 pt-16 mb-20">
-          <h2 className="text-2xl font-black text-white italic mb-10 tracking-tighter">SKŁAD I WARTOŚCI</h2>
-          <div 
-            className="max-w-xs rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 cursor-zoom-in hover:border-yellow-400 transition-all shadow-xl"
-            onClick={() => setFullImage(ingredientsUrl)}
-          >
-            <img 
-              src={ingredientsUrl} 
-              className="w-full h-auto opacity-60 hover:opacity-100 transition-opacity" 
-              alt="Skład"
-              onError={(e: any) => { 
-                if (!e.target.src.includes('.jpg')) {
-                    e.target.src = ingredientsUrl.replace('.JPG', '.jpg');
-                }
-              }} 
-            />
-          </div>
+                return (
+                  <tr key={drink.id} className="hover:bg-yellow-400/[0.03] transition-colors group">
+                    <td className="p-4 flex items-center gap-4">
+                      <div className="w-10 h-10 bg-zinc-800 rounded-lg overflow-hidden border border-zinc-700">
+                        <img 
+                          src={imgUrl} 
+                          className="w-full h-full object-cover"
+                          onError={(e: any) => { if(!e.target.src.includes('.jpg')) e.target.src = imgUrl.replace('.JPG', '.jpg'); }}
+                        />
+                      </div>
+                      <Link href={`/${drink.id}`} className="font-bold text-white italic group-hover:text-yellow-400">
+                        {drink.name}
+                      </Link>
+                    </td>
+                    <td className="p-4 text-right font-bold text-zinc-500">{drink.volume} ML</td>
+                    <td className="p-4 text-right font-mono text-green-400">{drink.avg_price.toFixed(2)} PLN</td>
+                    <td className="p-4 text-right font-black text-yellow-400 italic text-sm">
+                      {ratio}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
       </div>
     </main>
