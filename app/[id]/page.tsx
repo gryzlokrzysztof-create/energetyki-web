@@ -21,7 +21,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
     if (id) getDrink();
   }, [id]);
 
-  if (!drink) return <div className="min-h-screen bg-black flex items-center justify-center font-black text-yellow-400 uppercase italic text-2xl">Wczytywanie...</div>;
+  if (!drink) return <div className="min-h-screen bg-black flex items-center justify-center font-black text-yellow-400 uppercase italic text-2xl tracking-tighter">Protokół wczytywania...</div>;
 
   const folderName = drink.name.toLowerCase().trim().replace(/\s+/g, '_');
   const coverUrl = `${URL}/storage/v1/object/public/energy-drinkss/${folderName}/cover.JPG`;
@@ -42,7 +42,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <h1 className="text-3xl md:text-4xl font-black text-yellow-400 italic tracking-tighter text-left">⚡ ENERGETYKI.PL</h1>
           </Link>
           <Link href="/" className="text-[10px] font-black text-zinc-500 hover:text-yellow-400 tracking-widest border border-zinc-800 px-6 py-2 rounded-full transition-all text-left">
-            POWRÓT
+            POWRÓT DO RANKINGU
           </Link>
         </header>
         
@@ -66,11 +66,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             </h1>
             
             <div className="grid grid-cols-2 gap-4 mb-10 text-left">
-              <div className="bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800">
-                <p className="text-[10px] text-zinc-500 font-black mb-1 tracking-widest text-left text-left">ENERGIA / 100ML</p>
+              <div className="bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800 shadow-xl">
+                <p className="text-[10px] text-zinc-500 font-black mb-1 tracking-widest text-left">ENERGIA / 100ML</p>
                 <p className="text-3xl font-black text-white italic text-left">{drink.kcal || "—"} KCAL</p>
               </div>
-              <div className="bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800">
+              <div className="bg-zinc-900/50 p-6 rounded-3xl border border-zinc-800 shadow-xl">
                 <p className="text-[10px] text-zinc-500 font-black mb-1 tracking-widest text-left">CUKIER / 100ML</p>
                 <p className="text-3xl font-black text-white italic text-left">{drink.sugar || "0"} G</p>
               </div>
@@ -78,24 +78,24 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
 
             <div className="border-l-4 border-yellow-400 pl-8 text-left">
               <p className="text-lg text-zinc-400 italic lowercase first-letter:uppercase leading-relaxed text-left">
-                {drink.description || "Opis produktu w przygotowaniu."}
+                {drink.description || "Opis protokołu smakowego w przygotowaniu."}
               </p>
             </div>
           </div>
         </div>
 
         <div className="grid md:grid-cols-3 gap-8 border-t border-zinc-900 pt-16 mb-20 text-left">
-          <div className="md:col-span-2 text-left text-left">
-            <h2 className="text-2xl font-black text-white italic mb-6 tracking-tighter text-left">SKŁAD</h2>
-            <div className="bg-zinc-900/20 p-8 rounded-3xl border border-zinc-800">
+          <div className="md:col-span-2 text-left">
+            <h2 className="text-2xl font-black text-white italic mb-6 tracking-tighter text-left">SKŁAD SUROWCOWY</h2>
+            <div className="bg-zinc-900/20 p-8 rounded-3xl border border-zinc-800 shadow-inner">
               <p className="text-sm text-zinc-400 leading-relaxed lowercase italic text-left">
-                {drink.ingredients || "Brak danych o składnikach."}
+                {drink.ingredients || "Składniki zostaną uzupełnione po analizie etykiety."}
               </p>
             </div>
           </div>
 
           <div className="text-left">
-            <h2 className="text-2xl font-black text-white italic mb-6 tracking-tighter text-left">ETYKIETA</h2>
+            <h2 className="text-2xl font-black text-white italic mb-6 tracking-tighter text-left">ETYKIETA (FOTO)</h2>
             <div 
               className="rounded-2xl overflow-hidden border border-zinc-800 bg-zinc-900 cursor-zoom-in hover:border-yellow-400 transition-all shadow-xl aspect-[3/4]"
               onClick={() => setFullImage(ingredientsImgUrl)}
@@ -103,10 +103,11 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
               <img 
                 src={ingredientsImgUrl} 
                 className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" 
-                alt="Skład"
+                alt="Foto Skład"
                 onError={(e: any) => { if (!e.target.src.includes('.jpg')) e.target.src = ingredientsImgUrl.replace('.JPG', '.jpg'); }} 
               />
             </div>
+            <p className="mt-4 text-[9px] text-zinc-600 font-bold tracking-widest text-center">KLIKNIJ ABY POWIĘKSZYĆ</p>
           </div>
         </div>
       </div>
