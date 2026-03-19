@@ -16,7 +16,8 @@ export default function Home() {
   const [drinks, setDrinks] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'name', direction: 'asc' });
+  // Domyślne sortowanie po MOC / 1 ZŁ malejąco
+  const [sortConfig, setSortConfig] = useState<SortConfig>({ key: 'ratio', direction: 'desc' });
 
   useEffect(() => {
     async function getData() {
@@ -31,7 +32,6 @@ export default function Home() {
     getData();
   }, []);
 
-  // Funkcja obsługująca sortowanie
   const requestSort = (key: string) => {
     let direction: 'asc' | 'desc' = 'asc';
     if (sortConfig.key === key && sortConfig.direction === 'asc') {
@@ -40,14 +40,12 @@ export default function Home() {
     setSortConfig({ key, direction });
   };
 
-  // Logika filtrowania i sortowania danych
   const processedDrinks = drinks
     .filter(d => d.name?.toLowerCase().includes(searchTerm.toLowerCase()))
     .sort((a, b) => {
       let aValue: any;
       let bValue: any;
 
-      // Specjalne traktowanie dla wyliczanej kolumny "Moc / 1 zł"
       if (sortConfig.key === 'ratio') {
         aValue = (a.caffeine_mg_100ml * 2.5) / a.avg_price;
         bValue = (b.caffeine_mg_100ml * 2.5) / b.avg_price;
@@ -66,7 +64,7 @@ export default function Home() {
     return sortConfig.direction === 'asc' ? " ▲" : " ▼";
   };
 
-  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center font-black text-yellow-400">ŁADOWANIE RANKINGU...</div>;
+  if (loading) return <div className="min-h-screen bg-black flex items-center justify-center font-black text-yellow-400 uppercase tracking-tighter italic">Wczytywanie bazy energetyków...</div>;
 
   return (
     <main className="min-h-screen bg-[#050505] text-zinc-400 p-8 font-sans uppercase">
@@ -74,12 +72,12 @@ export default function Home() {
         <header className="flex flex-col md:flex-row justify-between items-end mb-10 gap-6 border-b border-zinc-800 pb-6">
           <div className="text-left">
             <h1 className="text-4xl font-black text-yellow-400 italic tracking-tighter">⚡ ENERGETYKI.PL</h1>
-            <p className="text-zinc-500 text-[10px] font-black tracking-widest mt-1 text-left">BAZA DANYCH OPŁACALNOŚCI</p>
+            <p className="text-zinc-500 text-[10px] font-black tracking-widest mt-1 text-left">Ranking opłacalności (MOC na 1 ZŁ)</p>
           </div>
           <input 
             type="text" 
-            placeholder="SZUKAJ PO NAZWIE..." 
-            className="bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-xs font-bold text-white outline-none focus:border-yellow-400 w-64"
+            placeholder="WYSZUKAJ PRODUKT..." 
+            className="bg-zinc-900 border border-zinc-800 p-3 rounded-xl text-xs font-bold text-white outline-none focus:border-yellow-400 w-64 transition-all"
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </header>
@@ -95,7 +93,7 @@ export default function Home() {
                   CENA (PLN) {getSortIcon('avg_price')}
                 </th>
                 <th className="p-4 text-right hover:text-white transition-colors" onClick={() => requestSort('caffeine_mg_100ml')}>
-                  KOFEINA (MG) {getSortIcon('caffeine_mg_100ml')}
+                  KOFEINA / 100ML {getSortIcon('caffeine_mg_100ml')}
                 </th>
                 <th className="p-4 text-right text-yellow-500 hover:text-white transition-colors font-black" onClick={() => requestSort('ratio')}>
                   MOC / 1 ZŁ {getSortIcon('ratio')}
@@ -103,37 +101,27 @@ export default function Home() {
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-900">
-              {processedDrinks.map((drink) => {
+              {processedDrinks.map((drink, index) => {
                 const folder = drink.name.toLowerCase().trim().replace(/\s+/g, '_');
                 const imgUrl = `${URL}/storage/v1/object/public/energy-drinkss/${folder}/cover.JPG`;
                 const ratio = (drink.caffeine_mg_100ml * 2.5 / drink.avg_price).toFixed(2);
 
+                // Logika podświetlania TOP 3 na złoto
+                const isTop3 = index < 3;
+                const isRatioSort = sortConfig.key === 'ratio' && sortConfig.direction === 'desc';
+                const rowClass = isTop3 && isRatioSort 
+                  ? "bg-yellow-400/10 hover:bg-yellow-400/20" 
+                  : "hover:bg-yellow-400/[0.03]";
+
                 return (
-                  <tr key={drink.id} className="hover:bg-yellow-400/[0.03] transition-colors group">
+                  <tr key={drink.id} className={`${rowClass} transition-colors group`}>
                     <td className="p-4 flex items-center gap-4">
                       <div className="w-10 h-10 bg-zinc-800 rounded-lg overflow-hidden border border-zinc-700">
                         <img 
                           src={imgUrl} 
                           className="w-full h-full object-cover"
                           onError={(e: any) => { if(!e.target.src.includes('.jpg')) e.target.src = imgUrl.replace('.JPG', '.jpg'); }}
+                          alt={drink.name}
                         />
                       </div>
-                      <Link href={`/${drink.id}`} className="font-bold text-white italic group-hover:text-yellow-400 transition-colors">
-                        {drink.name}
-                      </Link>
-                    </td>
-                    <td className="p-4 text-right font-mono text-green-400">{drink.avg_price}</td>
-                    <td className="p-4 text-right text-zinc-300 font-bold">{drink.caffeine_mg_100ml}</td>
-                    <td className="p-4 text-right font-black text-yellow-400 italic text-sm">
-                      {ratio}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </main>
-  );
-}
+                      <Link href={`/${drink.id}`} className="font-bold
