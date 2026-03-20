@@ -80,7 +80,7 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
             <h2 className="text-2xl font-black text-white italic mb-6 tracking-tighter">SKŁAD SUROWCOWY</h2>
             <div className="bg-zinc-900/20 p-8 rounded-3xl border border-zinc-800 shadow-inner min-h-[100px]">
               <p className="text-sm text-zinc-400 leading-relaxed lowercase italic">
-                {drink.Ingredients || "Dane o składnikach w trakcie uzupełniania."}
+                 {drink.Ingredients || "Dane o składnikach w trakcie uzupełniania.."}
               </p>
             </div>
           </div>
