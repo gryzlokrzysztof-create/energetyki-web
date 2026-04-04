@@ -4,6 +4,9 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
+// URL do Twojego Supabase (taki sam jak na podstronie produktu)
+const SUPABASE_URL = 'https://bhpxwadyvudhfqnkklir.supabase.co';
+
 export default function RankingPage() {
   const [drinks, setDrinks] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -63,7 +66,7 @@ export default function RankingPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans flex flex-col items-center pt-28 md:pt-32">
       
-      {/* ZUNIFIKOWANY, SZKLANY NAGŁÓWEK (Sticky) Z NOWYM LOGO */}
+      {/* ZUNIFIKOWANY NAGŁÓWEK */}
       <header className="fixed top-0 left-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-zinc-900 px-4 md:px-8 py-5 flex justify-between items-center text-left">
         <Link href="/" className="hover:opacity-80 transition-all text-left">
           <div className="flex items-center gap-2">
@@ -80,7 +83,6 @@ export default function RankingPage() {
 
       <div className="w-full max-w-6xl space-y-5">
         
-        {/* Pasek wyszukiwania i filtry */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 p-4 bg-zinc-900/50 border border-zinc-800/80 rounded-xl shadow-lg backdrop-blur-sm">
           <div className="flex gap-2 w-full md:w-auto">
             <button 
@@ -108,7 +110,6 @@ export default function RankingPage() {
           </div>
         </div>
 
-        {/* ULTRA KOMPAKTOWA TABELA */}
         <div className="w-full bg-zinc-900/40 rounded-xl border border-zinc-800/80 overflow-hidden shadow-xl backdrop-blur-sm">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse min-w-[650px]">
@@ -132,8 +133,9 @@ export default function RankingPage() {
               </thead>
               <tbody className="text-sm">
                 {filteredDrinks.map((drink, index) => {
-                  const folderName = drink.name?.toLowerCase().replace(/ /g, '_') || '';
-                  const imagePath = `/napoj/${folderName}/cover.jpg`; 
+                  // Generujemy ścieżkę do Supabase!
+                  const folderName = drink.name?.toLowerCase().trim().replace(/\s+/g, '_') || '';
+                  const imagePath = `${SUPABASE_URL}/storage/v1/object/public/energy-drinkss/${folderName}/cover.JPG`; 
                   const isZeroSugar = determineIsZeroSugar(drink);
 
                   return (
@@ -146,7 +148,14 @@ export default function RankingPage() {
                             src={imagePath} 
                             alt={drink.name} 
                             className="w-full h-full object-cover"
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                            onError={(e: any) => { 
+                              // Jeśli .JPG nie działa, sprawdź .jpg, a na koniec ukryj
+                              if (e.target.src.includes('.JPG')) {
+                                e.target.src = imagePath.replace('.JPG', '.jpg');
+                              } else {
+                                e.target.style.display = 'none'; 
+                              }
+                            }}
                           />
                         </div>
                       </td>
