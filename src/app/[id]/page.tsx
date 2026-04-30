@@ -2,6 +2,7 @@
 import { useEffect, useState, use } from 'react';
 import { createClient } from '@supabase/supabase-js';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const URL = 'https://bhpxwadyvudhfqnkklir.supabase.co';
 const KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJocHh3YWR5dnVkaGZxbmtrbGlyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzE3OTc0MTQsImV4cCI6MjA4NzM3MzQxNH0.0XT10Md4LodUak5FreZKyy4W8CXQFyZPAewVgUF6EZg'; 
@@ -12,6 +13,9 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   const [drink, setDrink] = useState<any>(null);
   const [fullImage, setFullImage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  
+  const pathname = usePathname();
+  const isActive = (path: string) => pathname === path;
 
   useEffect(() => {
     async function getDrink() {
@@ -56,21 +60,48 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
   })();
 
   return (
-    <main className="min-h-screen bg-[#050505] text-zinc-300 font-sans uppercase p-4 md:p-8 text-left relative pt-24 md:pt-32">
+    <main className="min-h-screen bg-[#050505] text-zinc-300 font-sans uppercase p-4 md:p-8 text-left relative pt-20 md:pt-24">
       
-      {/* --- ZUNIFIKOWANY, SZKLANY NAGŁÓWEK (Sticky) Z NOWYM LOGO --- */}
-      <header className="fixed top-0 left-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-zinc-900 px-4 md:px-8 py-5 flex justify-between items-center text-left">
+      {/* ZUNIFIKOWANY NAGŁÓWEK */}
+      <header className="fixed top-0 left-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-zinc-900 px-4 md:px-8 py-3 flex justify-between items-center text-left">
         <Link href="/" className="hover:opacity-80 transition-all text-left">
-          {/* Stylizowane Logo - Dokładne odwzorowanie Twojego zdjęcia */}
           <div className="flex items-center gap-2">
-            <span className="text-4xl text-yellow-400 font-extrabold italic">⚡</span>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-yellow-400 italic uppercase tracking-tighter text-left">
+            <span className="text-3xl text-yellow-400 font-extrabold italic">⚡</span>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-yellow-400 italic uppercase tracking-tighter text-left">
               ENERGETYKI.PL
             </h1>
           </div>
         </Link>
-        {/* ZMIANA: Powrót kieruje do /ranking */}
-        <Link href="/ranking" className="text-[9px] font-black text-zinc-400 hover:text-white border border-zinc-800 px-4 py-2 rounded-full transition-all tracking-widest bg-zinc-900/50 text-left">
+        
+        {/* Linki */}
+        <nav className="hidden md:flex gap-8 text-[12px] font-black tracking-widest italic items-center">
+          <Link 
+            href="/" 
+            className={`transition-colors ${isActive('/') ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400'}`}
+          >
+            STRONA GŁÓWNA
+          </Link>
+          <Link 
+            href="/ranking" 
+            className={`transition-colors ${isActive('/ranking') ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400'}`}
+          >
+            RANKING
+          </Link>
+          <Link 
+            href="/kontakt" 
+            className={`transition-colors ${isActive('/kontakt') ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400'}`}
+          >
+            KONTAKT
+          </Link>
+          
+          {/* Opcjonalny przycisk powrotu wkomponowany w menu dla wygody */}
+          <Link href="/ranking" className="ml-4 text-[9px] font-black text-zinc-400 hover:text-white border border-zinc-800 px-4 py-2 rounded-full transition-all tracking-widest bg-zinc-900/50">
+            POWRÓT DO RANKINGU
+          </Link>
+        </nav>
+
+        {/* Mały przycisk powrotu widoczny tylko na telefonach (gdy menu się ukryje) */}
+        <Link href="/ranking" className="md:hidden text-[9px] font-black text-zinc-400 hover:text-white border border-zinc-800 px-4 py-2 rounded-full transition-all tracking-widest bg-zinc-900/50">
           POWRÓT
         </Link>
       </header>
@@ -92,7 +123,6 @@ export default function ProductPage({ params }: { params: Promise<{ id: string }
           </div>
           
           <div className="flex flex-col h-full justify-center text-left min-w-0">
-            {/* ZMIANA: Usunięto Full Power, poprawiono Zero Sugar */}
             <div className="flex gap-2 mb-4 text-left">
               {isZeroSugar && <span className="bg-blue-500/20 text-blue-400 text-[9px] px-3 py-1 rounded-full font-black tracking-widest border border-blue-500/30">ZERO SUGAR</span>}
             </div>

@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from 'next/navigation';
 
 const energyDefinition = "Specjalistyczny bezalkoholowy napój gazowany lub niegazowany, zawierający substancje stymulujące (najczęściej kofeinę, taurynę i witaminy), przeznaczony do podniesienia wydolności psychofizycznej i chwilowego pobudzenia organizmu.";
 
@@ -21,26 +24,48 @@ const BigModernTile = ({ href, title, isSpecial = false }: { href: string; title
 );
 
 export default function HomePage() {
+  const pathname = usePathname();
+  const isActive = (path: string) => pathname === path;
+
   return (
-    <main className="min-h-screen flex flex-col items-center justify-center p-6 md:p-12 relative overflow-hidden font-sans bg-[#050505] text-zinc-300">
+    <main className="min-h-screen flex flex-col items-center justify-center p-6 md:p-12 pt-20 md:pt-24 relative overflow-hidden font-sans bg-[#050505] text-zinc-300">
       
-      {/* ZUNIFIKOWANY, SZKLANY NAGŁÓWEK (Sticky) Z NOWYM LOGO */}
-      <header className="fixed top-0 left-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-zinc-900 px-4 md:px-8 py-5 flex justify-between items-center text-left">
+      {/* NAGŁÓWEK - Wersja kompaktowa i ujednolicona */}
+      <header className="fixed top-0 left-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-zinc-900 px-4 md:px-8 py-3 flex justify-between items-center text-left">
         <Link href="/" className="hover:opacity-80 transition-all text-left">
           <div className="flex items-center gap-2">
-            <span className="text-4xl text-yellow-400 font-extrabold italic">⚡</span>
-            <h1 className="text-3xl md:text-4xl font-extrabold text-yellow-400 italic uppercase tracking-tighter text-left">
+            <span className="text-3xl text-yellow-400 font-extrabold italic">⚡</span>
+            <h1 className="text-2xl md:text-3xl font-extrabold text-yellow-400 italic uppercase tracking-tighter text-left">
               ENERGETYKI.PL
             </h1>
           </div>
         </Link>
-        <Link href="/ranking" className="text-[9px] font-black text-zinc-400 hover:text-white border border-zinc-800 px-4 py-2 rounded-full transition-all tracking-widest bg-zinc-900/50 text-left">
-          RANKING
-        </Link>
+        
+        {/* Linki */}
+        <nav className="hidden md:flex gap-8 text-[12px] font-black tracking-widest italic">
+          <Link 
+            href="/" 
+            className={`transition-colors ${isActive('/') ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400'}`}
+          >
+            STRONA GŁÓWNA
+          </Link>
+          <Link 
+            href="/ranking" 
+            className={`transition-colors ${isActive('/ranking') ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400'}`}
+          >
+            RANKING
+          </Link>
+          <Link 
+            href="/kontakt" 
+            className={`transition-colors ${isActive('/kontakt') ? 'text-yellow-400' : 'text-zinc-500 hover:text-yellow-400'}`}
+          >
+            KONTAKT
+          </Link>
+        </nav>
       </header>
 
       {/* Główna treść - wyśrodkowana */}
-      <div className="z-10 flex flex-col items-center mt-16 max-w-3xl w-full">
+      <div className="z-10 flex flex-col items-center max-w-3xl w-full">
         
         {/* DEFINICJA - zmodernizowana, miękka */}
         <section className="w-full p-8 rounded-3xl border border-zinc-800 bg-zinc-900/40 backdrop-blur-md shadow-xl mb-12">
