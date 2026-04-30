@@ -4,7 +4,6 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { supabase } from "../../lib/supabase";
 
-// URL do Twojego Supabase (taki sam jak na podstronie produktu)
 const SUPABASE_URL = 'https://bhpxwadyvudhfqnkklir.supabase.co';
 
 export default function RankingPage() {
@@ -22,11 +21,24 @@ export default function RankingPage() {
     fetchDrinks();
   }, []);
 
+  // KULOODPORNA FUNKCJA DO NAZW FOLDERÓW
+  const createFolderName = (name: string) => {
+    if (!name) return '';
+    const polishChars: { [key: string]: string } = {
+      'ą': 'a', 'ć': 'c', 'ę': 'e', 'ł': 'l', 'ń': 'n', 'ó': 'o', 'ś': 's', 'ź': 'z', 'ż': 'z'
+    };
+    return name
+      .toLowerCase()
+      .replace(/[ąćęłńóśźż]/g, match => polishChars[match]) // 1. Usuwa polskie znaki
+      .replace(/[^a-z0-9\s]/g, '') // 2. Usuwa WSZYSTKIE znaki specjalne (kropki, przecinki, apostrofy)
+      .trim()
+      .replace(/\s+/g, '_'); // 3. Zamienia spacje na podkreślniki
+  };
+
   const determineIsZeroSugar = (drink: any): boolean => {
     if (drink.kcal !== undefined && drink.kcal !== null) {
       return drink.kcal < 6;
     }
-    
     if (!drink.name) return false;
     const nameLower = drink.name.toLowerCase();
     const zeroKeywords = ['bezcukru', 'zero', 'bez cukru', 'no sugar', 'diet', 'ultra', 'sugarfree', 'sugar free'];
@@ -66,7 +78,6 @@ export default function RankingPage() {
   return (
     <main className="min-h-screen bg-zinc-950 text-zinc-100 p-4 md:p-8 font-sans flex flex-col items-center pt-28 md:pt-32">
       
-      {/* ZUNIFIKOWANY NAGŁÓWEK */}
       <header className="fixed top-0 left-0 w-full z-50 bg-black/60 backdrop-blur-md border-b border-zinc-900 px-4 md:px-8 py-5 flex justify-between items-center text-left">
         <Link href="/" className="hover:opacity-80 transition-all text-left">
           <div className="flex items-center gap-2">
@@ -133,8 +144,7 @@ export default function RankingPage() {
               </thead>
               <tbody className="text-sm">
                 {filteredDrinks.map((drink, index) => {
-                  // Generujemy ścieżkę do Supabase!
-                  const folderName = drink.name?.toLowerCase().trim().replace(/\s+/g, '_') || '';
+                  const folderName = createFolderName(drink.name);
                   const imagePath = `${SUPABASE_URL}/storage/v1/object/public/energy-drinkss/${folderName}/cover.JPG`; 
                   const isZeroSugar = determineIsZeroSugar(drink);
 
@@ -143,17 +153,18 @@ export default function RankingPage() {
                       <td className="py-2 px-3 text-center font-semibold text-zinc-500 group-hover:text-zinc-300 text-xs">{index + 1}</td>
 
                       <td className="py-2 px-3 text-center">
-                        <div className="w-9 h-12 mx-auto bg-zinc-800/50 rounded flex items-center justify-center overflow-hidden shadow-sm">
+                        <div className="w-9 h-12 mx-auto bg-zinc-800/50 rounded flex items-center justify-center overflow-hidden shadow-sm relative">
                           <img 
                             src={imagePath} 
                             alt={drink.name} 
-                            className="w-full h-full object-cover"
+                            className="w-full h-full object-cover relative z-10"
                             onError={(e: any) => { 
-                              // Jeśli .JPG nie działa, sprawdź .jpg, a na koniec ukryj
+                              // Jeśli .JPG zawiedzie, próbujemy małego .jpg
                               if (e.target.src.includes('.JPG')) {
                                 e.target.src = imagePath.replace('.JPG', '.jpg');
                               } else {
-                                e.target.style.display = 'none'; 
+                                // Jeśli i to zawiedzie, ukrywamy zepsutą ikonkę
+                                e.target.style.opacity = '0';
                               }
                             }}
                           />
